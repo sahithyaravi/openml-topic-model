@@ -4,12 +4,13 @@ from nltk.corpus import stopwords
 import spacy
 from nltk import FreqDist
 import plotly
+import re
 
 import plotly.graph_objs as go
 nltk.download('stopwords')
 stop_words = stopwords.words('english')
 stop_words.extend(["unknown", "target", "uci", "edu", "citation", "html",
-                   "policy",
+                   "policy", "datum",
                    "author", "dataset", "feature", "attribute",
                    "source", "cite", "number",
                    "class", "positive", "negative"
@@ -19,6 +20,12 @@ stop_words.extend(["unknown", "target", "uci", "edu", "citation", "html",
 
 nlp = spacy.load('en')
 # python -m spacy download en using admin on conda prompt
+
+
+def remove_url(col):
+    col_url = [re.sub(r"http\S+","", text) for text in col]
+    col_author = [re.sub(r"Author\S+","", text) for text in col_url]
+    return  col_author    #\S+ matches all whitespace characters
 
 
 def lower_case(col):
@@ -61,9 +68,14 @@ def plot_frequency_words(col):
 # Read df
 df = pd.read_pickle('df.pkl')
 
+# Remove url
+df['text'] = remove_url(df['text'])
+print(df['text'].head())
+
 # Remove stop words
 df['text'] = df['text'].str.replace("[^a-zA-Z#]", " ")
 df["lower"] = lower_case(df["text"])
+print(df["lower"].head())
 # Lemmetize reviews
 new_text = [lemmetize(doc) for doc in df["lower"]]
 df['processed'] = new_text
