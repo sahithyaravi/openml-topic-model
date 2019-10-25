@@ -9,14 +9,14 @@ import re
 import plotly.graph_objs as go
 nltk.download('stopwords')
 stop_words = stopwords.words('english')
-stop_words.extend(["unknown", "target", "uci", "edu", "citation", "html",
-                   "policy", "datum",
-                   "author", "dataset", "feature", "attribute",
-                   "source", "cite", "number",
-                   "class", "positive", "negative"
-                   "please", "data", "description", "archive",
-                   "https", "attributes",
-                   "prof"])
+stop_words.extend(["unknown",
+                   "source", "https", "uci", "edu", "citation", "html","policy", "datum", "please", "cite",
+                   "title", "dataset", "feature", "attribute", "attributes", "enum", "row", "column",
+                   "value", "project", "program", "several"
+                   "target", "class", "positive", "negative",
+                   "thesis", "database", "format",
+                   "study"
+                   ])
 
 nlp = spacy.load('en')
 # python -m spacy download en using admin on conda prompt
@@ -24,12 +24,11 @@ nlp = spacy.load('en')
 
 def remove_url(col):
     col_url = [re.sub(r"http\S+","", text) for text in col]
-    col_author = [re.sub(r"Author\S+","", text) for text in col_url]
-    return  col_author    #\S+ matches all whitespace characters
+    return col_url    #\S+ matches all whitespace characters
 
 
 def lower_case(col):
-    return ([text.lower() for text in col])
+    return [text.lower() for text in col]
 
 
 def remove_stop_words(col):
@@ -47,7 +46,8 @@ def lemmetize(doc):
     doc = nlp(doc)
     doc_new = []
     for token in doc:
-        doc_new.append(token.lemma_)
+        if token.pos_ in ['NOUN', 'ADJ']:
+            doc_new.append(token.lemma_)
 
     return " ".join (doc_new)
 
@@ -68,22 +68,37 @@ def plot_frequency_words(col):
 # Read df
 df = pd.read_pickle('df.pkl')
 
+# Remove author line
+out =[]
+for text in df['text']:
+    split = text.split('\n', 1)
+    if len(split) > 1:
+        out_text = split[1]
+    else:
+        out_text = text
+    out.append(out_text)
+
+df['text'] = out
+
 # Remove url
 df['text'] = remove_url(df['text'])
-print(df['text'].head())
 
-# Remove stop words
+# Remove special chars and numbers
 df['text'] = df['text'].str.replace("[^a-zA-Z#]", " ")
-df["lower"] = lower_case(df["text"])
-print(df["lower"].head())
-# Lemmetize reviews
-new_text = [lemmetize(doc) for doc in df["lower"]]
-df['processed'] = new_text
+
+# Lower case
+df["text"] = lower_case(df["text"])
+
+
+# Lemmetize
+df['processed'] = [lemmetize(doc) for doc in df["text"]]
+
+
+# Remover short words
+df["processed"] = df['processed'].apply(lambda x: " ".join([word for word in x.split() if len(word) > 2]))
 
 df['processed'] = remove_stop_words(df['processed'])
 
-pd.set_option('display.max_colwidth', -1)
-df["processed"] = df['processed'].apply(lambda x: " ".join([word for word in x.split() if len(word)>2]))
 plot_frequency_words(df['processed'])
 # Split to list of words
 final = []

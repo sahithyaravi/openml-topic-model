@@ -8,8 +8,7 @@ for id in dataset_list['did'][1:5000]:
         data = datasets.get_dataset(id, download_data=False)
         if data.description:
             ids.append(id)
-            data.description.split()
-            desc.append()
+            desc.append(data.description)
     except:
         pass
 df = pd.DataFrame()

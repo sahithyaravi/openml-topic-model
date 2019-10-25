@@ -13,13 +13,23 @@ print(doc_term_mat[0])
 print(docs[0])
 
 # LDA
-LDA = gensim.models.ldamodel.LdaModel
-
+LDA = gensim.models.LdaModel
+HDP = gensim.models.HdpModel
 
 lda_model = LDA(corpus=doc_term_mat, passes=50,
                 alpha='auto',
 
                 id2word=dictionary, num_topics=4, random_state=1)
+
+hdp_model = HDP(corpus=doc_term_mat,
+                id2word=dictionary)
 topics = lda_model.print_topics()
+
+print("LDA topics:")
 for topic in topics:
-    print (topic)
+    print(topic)
+
+hdp_topics = hdp_model.print_topics()
+print("LDA topics:")
+for topic in hdp_topics:
+    print(topic)
