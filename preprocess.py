@@ -5,16 +5,24 @@ import spacy
 from nltk import FreqDist
 import plotly
 import re
-
+import gensim
 import plotly.graph_objs as go
 nltk.download('stopwords')
 stop_words = stopwords.words('english')
-stop_words.extend(["unknown",
-                   "version",
+stop_words.extend(["unknown", "several", "version",
+                   "set", "task",
                    "original",
-                   "source", "https", "uci", "edu", "citation", "html","policy", "datum", "please", "cite",
-                   "title", "dataset", "feature", "attribute", "attributes", "enum", "row", "column",
-                   "value", "project", "program", "several"
+                   "imputation",
+                   "classification", "input", "output",
+                   "problem",
+                   "name",
+                   "source", "https", "uci", "edu", "citation", "html", "policy", "datum", "please", "cite",
+                   "title", "dataset", "feature", "attribute", "attributes",  "row", "column",
+                   "enum", "string", "categorical", "number", "continuous", "numeric",
+                   "nominal",
+                   "variable", "instance", "set",
+                   "classtype", "none", "note", "inf", "information",
+                   "value", "project", "program", "paper",
                    "target", "class", "positive", "negative",
                    "thesis", "database", "format",
                    "study"
@@ -109,7 +117,14 @@ final = []
 for doc in df["processed"]:
     final.append(doc.split())
 
+# Bigrams
+bigram = gensim.models.Phrases(final, min_count=5, threshold=100)
+bigram_mod = gensim.models.phrases.Phraser(bigram)
+final = [bigram_mod[line] for line in final]
+
 df["processed"] = final
+
+
 df.to_pickle("df_proc.pkl")
 
 df.to_csv("df_proc.csv")
