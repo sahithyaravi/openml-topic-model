@@ -10,6 +10,8 @@ import plotly.graph_objs as go
 nltk.download('stopwords')
 stop_words = stopwords.words('english')
 stop_words.extend(["unknown",
+                   "version",
+                   "original",
                    "source", "https", "uci", "edu", "citation", "html","policy", "datum", "please", "cite",
                    "title", "dataset", "feature", "attribute", "attributes", "enum", "row", "column",
                    "value", "project", "program", "several"
@@ -43,12 +45,11 @@ def remove_stop_words(col):
 
 
 def lemmetize(doc):
-    doc = nlp(doc)
+    sents = nlp(doc)
     doc_new = []
-    for token in doc:
+    for token in sents:
         if token.pos_ in ['NOUN', 'ADJ']:
             doc_new.append(token.lemma_)
-
     return " ".join (doc_new)
 
 
@@ -85,6 +86,9 @@ df['text'] = remove_url(df['text'])
 
 # Remove special chars and numbers
 df['text'] = df['text'].str.replace("[^a-zA-Z#]", " ")
+
+# Remove emails:
+df["text"] = [re.sub('\S*@\S*\s?', '', text) for text in df["text"]]
 
 # Lower case
 df["text"] = lower_case(df["text"])
