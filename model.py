@@ -40,7 +40,15 @@ def final_model():
                                            alpha=alpha,
                                            num_topics=int(best_params["topics"].values[0]))
 
-    print(lda_model.get_document_topics(doc_term_mat))
+    docs = list(df["processed"].values)
+    doc_tops = []
+    for doc in docs:
+        probs = dict(
+            lda_model.get_document_topics(dictionary.doc2bow(doc)))
+        t = max(probs, key=probs.get)
+        doc_tops.append(t)
+    df["topics"] = doc_tops
+    df.to_csv("resultdf.csv")
 
     coherence_model_lda = CoherenceModel(model=lda_model,
                                          coherence='c_v',
