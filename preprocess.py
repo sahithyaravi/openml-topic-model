@@ -9,7 +9,8 @@ import gensim
 import plotly.graph_objs as go
 nltk.download('stopwords')
 stop_words = stopwords.words('english')
-stop_words.extend(["unknown", "several", "version",
+stop_words.extend(["author",
+                   "unknown", "several", "version",
                    "set", "task",
                    "original",
                    "imputation",
@@ -77,6 +78,7 @@ def plot_frequency_words(col):
 # Read df
 df = pd.read_pickle('df.pkl')
 
+
 # Remove author line
 out =[]
 for text in df['text']:
@@ -87,7 +89,7 @@ for text in df['text']:
         out_text = text
     out.append(out_text)
 
-df['text'] = out
+
 
 # Remove url
 df['text'] = remove_url(df['text'])
