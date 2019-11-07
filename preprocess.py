@@ -76,7 +76,7 @@ def plot_frequency_words(col):
 
 
 # Read df
-df = pd.read_pickle('df.pkl')
+df = pd.read_pickle('df_unique.pkl')
 
 
 # Remove author line

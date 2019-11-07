@@ -10,7 +10,7 @@ import numpy as np
 import pyLDAvis.gensim
 import pyLDAvis
 from gensim.test.utils import datapath
-df_original = pd.read_pickle("df.pkl")
+df_original = pd.read_pickle("df_unique.pkl")
 
 df = pd.read_pickle("df_proc.pkl")
 
@@ -185,7 +185,7 @@ def hyper_parameter_find():
 
 if __name__ == "__main__":
    # base_model()
-   # hyper_parameter_find()
-   final_model()
+   hyper_parameter_find()
+   #final_model()
    # predict_unseen_data_topic()
     #save_all_topics()

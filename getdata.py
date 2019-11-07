@@ -27,3 +27,5 @@ df['name'] = names
 df['text'] = desc
 pd.set_option('display.max_colwidth', -1)
 df.to_pickle('df.pkl')
+
+
