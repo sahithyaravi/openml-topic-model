@@ -23,7 +23,7 @@ dictionary = corpora.Dictionary(docs_train)
 
 
 # Filter terms that occur in more than 50% of docs
-dictionary.filter_extremes(no_above=0.5)
+dictionary.filter_extremes(no_above=0.4)
 
 # Convert to document term matrix (corpus)
 doc_term_mat = [dictionary.doc2bow(doc) for doc in docs_train]
@@ -51,15 +51,20 @@ def save_all_topics():
         t = max(probs, key=probs.get)
         doc_tops.append(t)
     df["topics"] = doc_tops
+    map_dict = {0: "other", 1:"price", 2:"bio", 3:"cv"}
+    df["topic_str"] = df["topics"].map(map_dict)
     df.to_csv("resultdf.csv")
 
 def final_model():
     results = pd.read_csv("lda_tuning_results.csv")
-    #results = results[results["topics"]== 6]
-    best_params = results.sort_values(by="coherence", ascending=False)
+    #results = results[results["topics"]== 10]
+    best_params = results.sort_values(by="perplexity", ascending=False)
+    #best_params = best_params[best_params["perplexity"] > -7]
     beta = best_params["beta"].values[0]
     alpha = best_params["alpha"].values[0]
     print(best_params["coherence"].values[0])
+    num_topics = int(best_params["topics"].values[0])
+    print("topics ", num_topics)
     if beta!="symmetric":
         beta = float(beta)
     if alpha != "symmetric" and alpha!="asymmetric":
@@ -73,7 +78,7 @@ def final_model():
                                            per_word_topics=True,
                                            eta = beta,
                                            alpha=alpha,
-                                           num_topics=int(best_params["topics"].values[0]))
+                                           num_topics=num_topics)
 
 
 
@@ -108,7 +113,7 @@ def compute_coherence_score(corpus, id2word, num_topics, alpha, eta, text):
                                            num_topics=num_topics,
                                            random_state=100,
                                            chunksize=100,
-                                           passes=100,
+                                           passes=200,
                                            per_word_topics=True)
     coherence_model_lda = CoherenceModel(model=lda_model,
                                          coherence='c_v',
@@ -150,7 +155,7 @@ def base_model():
 
 def hyper_parameter_find():
     # Hyper parameter tuning:
-    topics_range = list(range(4, 12, 1))
+    topics_range = list(range(5, 11, 1))
     alpha_range = list(np.arange(0.01, 1, 0.3))
     alpha_range.append("symmetric")
     alpha_range.append("asymmetric")
@@ -185,7 +190,10 @@ def hyper_parameter_find():
 
 if __name__ == "__main__":
    # base_model()
-   hyper_parameter_find()
-   #final_model()
-   # predict_unseen_data_topic()
-    #save_all_topics()
+   #hyper_parameter_find()
+   final_model()
+   #predict_unseen_data_topic()
+   #save_all_topics()
+   # result = pd.read_csv("resultdf.csv")
+   # pd.set_option("display.max_colwidth",-1)
+   # print(result[result["topic_str"]=="other"]["text"])

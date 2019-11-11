@@ -14,7 +14,8 @@ for id in dataset_list['did']:
             desc.append(data.description + " " + data.name+ " " )
         else:
             print(id)
-            desc.append(data.description + data.name + " ".join(features))
+            desc.append(data.description + " " + data.name + " ")
+            #desc.append(data.description + data.name + " ".join(features))
             ids.append(id)
             names.append(data.name)
 

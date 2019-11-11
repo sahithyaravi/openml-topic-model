@@ -10,6 +10,13 @@ import plotly.graph_objs as go
 nltk.download('stopwords')
 stop_words = stopwords.words('english')
 stop_words.extend(["author",
+                   "colinearity",
+                   "training",
+                   "prediction",
+                   "model",
+                   "degree",
+                   "file", "pixel", "description",
+                   "type", "data",
                    "unknown", "several", "version",
                    "set", "task",
                    "original",
