@@ -23,7 +23,7 @@ dictionary = corpora.Dictionary(docs_train)
 
 
 # Filter terms that occur in more than 50% of docs
-dictionary.filter_extremes(no_above=0.4)
+dictionary.filter_extremes(no_above=0.5)
 
 # Convert to document term matrix (corpus)
 doc_term_mat = [dictionary.doc2bow(doc) for doc in docs_train]
@@ -51,14 +51,14 @@ def save_all_topics():
         t = max(probs, key=probs.get)
         doc_tops.append(t)
     df["topics"] = doc_tops
-    map_dict = {0: "other", 1:"price", 2:"bio", 3:"cv"}
-    df["topic_str"] = df["topics"].map(map_dict)
+    # map_dict = {0: "other", 1:"price", 2:"bio", 3:"cv"}
+    # df["topic_str"] = df["topics"].map(map_dict)
     df.to_csv("resultdf.csv")
 
 def final_model():
     results = pd.read_csv("lda_tuning_results.csv")
     #results = results[results["topics"]== 10]
-    best_params = results.sort_values(by="perplexity", ascending=False)
+    best_params = results.sort_values(by="coherence", ascending=False)
     #best_params = best_params[best_params["perplexity"] > -7]
     beta = best_params["beta"].values[0]
     alpha = best_params["alpha"].values[0]
@@ -132,9 +132,9 @@ def base_model():
                                            id2word=dictionary,
                                            workers=3,
                                            chunksize=100,
-                                           num_topics=10,
-                                           random_state=100,
-                                           passes=100,
+                                           num_topics=7,
+                                           random_state=200,
+                                           passes=200,
                                            per_word_topics=True)
 
 
@@ -150,6 +150,9 @@ def base_model():
                                          dictionary=dictionary,
                                          coherence='c_v')
     coherence_lda = coherence_model_lda.get_coherence()
+    # Visualize the topics
+    LDAvis_prepared = pyLDAvis.gensim.prepare(lda_model, doc_term_mat, dictionary)
+    pyLDAvis.save_html(LDAvis_prepared, "base.html")
     print('\nCoherence Score: ', coherence_lda)
 
 
@@ -190,8 +193,8 @@ def hyper_parameter_find():
 
 if __name__ == "__main__":
    # base_model()
-   #hyper_parameter_find()
-   final_model()
+   hyper_parameter_find()
+   #final_model()
    #predict_unseen_data_topic()
    #save_all_topics()
    # result = pd.read_csv("resultdf.csv")

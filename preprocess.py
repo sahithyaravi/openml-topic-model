@@ -9,31 +9,19 @@ import gensim
 import plotly.graph_objs as go
 nltk.download('stopwords')
 stop_words = stopwords.words('english')
-stop_words.extend(["author",
-                   "colinearity",
-                   "training",
-                   "prediction",
-                   "model",
-                   "degree",
-                   "file", "pixel", "description",
-                   "type", "data",
-                   "unknown", "several", "version",
-                   "set", "task",
-                   "original",
-                   "imputation",
-                   "classification", "input", "output",
-                   "problem",
-                   "name",
-                   "source", "https", "uci", "edu", "citation", "html", "policy", "datum", "please", "cite",
-                   "title", "dataset", "feature", "attribute", "attributes",  "row", "column",
-                   "enum", "string", "categorical", "number", "continuous", "numeric",
-                   "nominal",
-                   "variable", "instance", "set",
-                   "classtype", "none", "note", "inf", "information",
-                   "value", "project", "program", "paper",
-                   "target", "class", "positive", "negative",
-                   "thesis", "database", "format",
-                   "study"
+stop_words.extend(["example", "experiment", "sample", "problem", "input", "output", "set", "task", "study",
+                   "training", "prediction", "model", "test", "train",
+                   "author", "source", "https", "uci", "edu", "citation", "html", "policy", "datum", "please",
+                   "title", "dataset", "feature", "attribute", "attributes", "row", "column", "image", "file", "pixel",
+                   "description", "cite", "publication", "result", "distribution", "point",
+                   "nominal", "enum", "string", "categorical", "number", "continuous", "numeric", "variable",
+                   "instance", "set", "classtype", "none", "note", "inf", "information", "type", "data",
+                   "target", "class", "positive", "negative", "value",
+                   "time", "date", "year",
+                   "imputation", "classification", "regression",
+                   "colinearity", "degree", "average",
+                   "unknown", "several", "version", "original",
+                   "name", "project", "program", "paper", "thesis", "database", "format"
                    ])
 
 nlp = spacy.load('en')
@@ -64,7 +52,7 @@ def lemmetize(doc):
     sents = nlp(doc)
     doc_new = []
     for token in sents:
-        if token.pos_ in ['NOUN', 'ADJ']:
+        if token.pos_ in ['NOUN','PROPN']:
             doc_new.append(token.lemma_)
     return " ".join (doc_new)
 
@@ -84,19 +72,19 @@ def plot_frequency_words(col):
 
 # Read df
 df = pd.read_pickle('df_unique.pkl')
-
+# Lower case
+df["text"] = lower_case(df["text"])
 
 # Remove author line
 out =[]
 for text in df['text']:
-    split = text.split('\n', 1)
-    if len(split) > 1:
-        out_text = split[1]
+    split = text.splitlines()
+    if len(split) > 3 and "author" in split[0]:
+        out_text = " ".join(split[3:])
     else:
         out_text = text
     out.append(out_text)
-
-
+df["text"] = out
 
 # Remove url
 df['text'] = remove_url(df['text'])
@@ -106,10 +94,7 @@ df['text'] = df['text'].str.replace("[^a-zA-Z#]", " ")
 
 # Remove emails:
 df["text"] = [re.sub('\S*@\S*\s?', '', text) for text in df["text"]]
-
-# Lower case
-df["text"] = lower_case(df["text"])
-
+df["text"] = df["text"] + df["name"]
 
 # Lemmetize
 df['processed'] = [lemmetize(doc) for doc in df["text"]]
@@ -132,7 +117,8 @@ bigram_mod = gensim.models.phrases.Phraser(bigram)
 final = [bigram_mod[line] for line in final]
 
 df["processed"] = final
-
+df["title1"] = df["name"].str.split()
+df["processed"] = df["title1"] + df["processed"]
 
 df.to_pickle("df_proc.pkl")
 
