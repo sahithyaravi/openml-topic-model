@@ -52,7 +52,7 @@ def lemmetize(doc):
     sents = nlp(doc)
     doc_new = []
     for token in sents:
-        if token.pos_ in ['NOUN','PROPN']:
+        if token.pos_ in ['NOUN']:
             doc_new.append(token.lemma_)
     return " ".join (doc_new)
 

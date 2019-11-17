@@ -57,8 +57,8 @@ def save_all_topics():
 
 def final_model():
     results = pd.read_csv("lda_tuning_results.csv")
-    #results = results[results["topics"]== 10]
-    best_params = results.sort_values(by="coherence", ascending=False)
+    #results = results[results["topics"]== 6]
+    best_params = results.sort_values(by="perplexity", ascending=False)
     #best_params = best_params[best_params["perplexity"] > -7]
     beta = best_params["beta"].values[0]
     alpha = best_params["alpha"].values[0]
@@ -90,7 +90,7 @@ def final_model():
     perplexity = lda_model.log_perplexity(doc_term_mat_test)
     print("coherence final model ", coherence_model_lda)
     print("perplexity final model ", perplexity)
-    topics = lda_model.print_topics()
+    topics = lda_model.show_topics(num_words=25)
     temp_path = datapath("model")
     lda_model.save(temp_path)
 
@@ -132,7 +132,7 @@ def base_model():
                                            id2word=dictionary,
                                            workers=3,
                                            chunksize=100,
-                                           num_topics=7,
+                                           num_topics=10,
                                            random_state=200,
                                            passes=200,
                                            per_word_topics=True)
@@ -158,7 +158,7 @@ def base_model():
 
 def hyper_parameter_find():
     # Hyper parameter tuning:
-    topics_range = list(range(5, 11, 1))
+    topics_range = list(range(5, 20, 1))
     alpha_range = list(np.arange(0.01, 1, 0.3))
     alpha_range.append("symmetric")
     alpha_range.append("asymmetric")
@@ -192,7 +192,7 @@ def hyper_parameter_find():
 
 
 if __name__ == "__main__":
-   # base_model()
+   #base_model()
    hyper_parameter_find()
    #final_model()
    #predict_unseen_data_topic()
