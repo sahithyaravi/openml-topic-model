@@ -224,8 +224,8 @@ def plot_word_cloud():
 
 
 if __name__ == "__main__":
-   base_model()
-   #hyper_parameter_find()
+   #base_model()
+   hyper_parameter_find()
    # final_model()
    # predict_unseen_data_topic()
    # save_all_topics()
