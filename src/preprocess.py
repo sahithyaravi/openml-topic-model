@@ -4,136 +4,78 @@ from nltk.corpus import stopwords
 import spacy
 from nltk import FreqDist
 import plotly
-import re
-import gensim
 import plotly.graph_objs as go
-#from .getdata import get_openml_data
-nltk.download('stopwords')
-stop_words = stopwords.words('english')
-stop_words.extend(["example", "experiment", "sample", "problem", "input", "output", "set", "task", "study",
-                   "training", "prediction", "model", "test", "train",
-                   "author", "source", "https", "uci", "edu", "citation", "html", "policy", "datum", "please",
-                   "title", "dataset", "feature", "attribute", "attributes", "row", "column", "image", "file", "pixel",
-                   "description", "cite", "publication", "result", "distribution", "point",
-                   "nominal", "enum", "string", "categorical", "number", "continuous", "numeric", "variable",
-                   "instance", "set", "classtype", "none", "note", "inf", "information", "type", "data",
-                   "target", "class", "positive", "negative", "value",
-                   "time", "date", "year",
-                   "imputation", "classification", "regression",
-                   "colinearity", "degree", "average",
-                   "unknown", "several", "version", "original",
-                   "name", "project", "program", "paper", "thesis", "database", "format"
-                   ])
-
-nlp = spacy.load('en')
-# python -m spacy download en using admin on conda prompt
+from src.getdata import Dataset
+from src.preprocess_functions import *
 
 
-def remove_url(col):
-    col_url = [re.sub(r"http\S+","", text) for text in col]
-    return col_url    #\S+ matches all whitespace characters
+class Process:
+    def __init__(self):
+        nltk.download('stopwords')
+        self.stop_words = stopwords.words('english')
+        self.stop_words.extend(["example", "experiment", "sample", "problem", "input", "output", "set", "task", "study",
+                                "training", "prediction", "model", "test", "train",
+                                "author", "source", "https", "uci", "edu", "citation", "html", "policy", "datum", "please",
+                                "title", "dataset", "feature", "attribute", "attributes", "row", "column", "image", "file",
+                                "pixel",
+                                "description", "cite", "publication", "result", "distribution", "point",
+                                "nominal", "enum", "string", "categorical", "number", "continuous", "numeric", "variable",
+                                "instance", "set", "classtype", "none", "note", "inf", "information", "type", "data",
+                                "target", "class", "positive", "negative", "value",
+                                "time", "date", "year",
+                                "imputation", "classification", "regression",
+                                "colinearity", "degree", "average",
+                                "unknown", "several", "version", "original",
+                                "name", "project", "program", "paper", "thesis", "database", "format"
+                                ])
+        self.nlp = spacy.load('en')  # python -m spacy download en using admin on conda prompt
+
+    def get_processed_data(self, cache: bool):
+        dataset = Dataset()
+        df = dataset.get_openml_data(cache)
+        df["text"] = [text.lower() for text in df["text"]]
+        df = remove_author_info(df)
+        pd.set_option('display.expand_frame_repr', False)
+        df = remove_special_chars(df)
+        print(df.head())
+
+        df['processed'] = [self.lemmetize(doc) for doc in df["text"]]
+        df["processed"] = df['processed'].apply(lambda x: " ".join([word for word in x.split()
+                                                                    if len(word) > 2]))
+        df['processed'] = remove_stop_words(df['processed'], self.stop_words)
+        self.plot_frequency_words(df['processed'])
+
+        # Split to list of words
+        processed_output = []
+        for doc in df["processed"]:
+            processed_output.append(doc.split())
+        df["processed"] = get_bigrams(processed_output)
+        df["title1"] = df["name"].str.split()
+        df["processed"] = df["title1"] + df["processed"]
+        df.to_pickle("df_proc.pkl")
+        df.to_csv("df_proc.csv")
+        return df
+
+    def lemmetize(self, doc):
+        sents = self.nlp(doc)
+        doc_new = []
+        for token in sents:
+            if token.pos_ in ['NOUN']:
+                doc_new.append(token.lemma_)
+        return " ".join(doc_new)
+
+    def plot_frequency_words(self, col):
+        joined_words = " ".join([doc for doc in col])
+        all_words = joined_words.split()
+        fdist = FreqDist(all_words)
+        df = (pd.DataFrame.from_dict(fdist, orient="index"))
+        df.reset_index(inplace=True)
+        df.columns = ["words", "count"]
+        df.sort_values(by="count", inplace=True, ascending=False)
+        data = [go.Bar(x=df["words"][:20], y=df["count"][:20])]
+        fig = go.Figure(data)
+        plotly.offline.plot(fig)
 
 
-def lower_case(col):
-    return [text.lower() for text in col]
-
-
-def remove_stop_words(col):
-    col_new = []
-    for text in col:
-        list_of_words = text.split()
-        #print(list_of_words)
-        new_text = " ".join([i for i in list_of_words if i not in stop_words])
-        col_new.append(new_text)
-        print(len(text), len(new_text))
-    return col_new
-
-
-def lemmetize(doc):
-    sents = nlp(doc)
-    doc_new = []
-    for token in sents:
-        if token.pos_ in ['NOUN']:
-            doc_new.append(token.lemma_)
-    return " ".join (doc_new)
-
-
-def plot_frequency_words(col):
-    joined_words = " ".join([doc for doc in col])
-    all_words = joined_words.split()
-    fdist = FreqDist(all_words)
-    df = (pd.DataFrame.from_dict(fdist, orient="index"))
-    df.reset_index(inplace=True)
-    df.columns = ["words", "count"]
-    df.sort_values(by="count", inplace=True,ascending=False)
-    data = [go.Bar(x=df["words"][:20], y= df["count"][:20])]
-    fig = go.Figure(data)
-    plotly.offline.plot(fig)
-
-
-def get_processed_data(cache: bool = True):
-    # Read df
-    df = pd.read_pickle('../data/df.pkl')  # get_openml_data(cache=cache)
-    # Lower case
-    df["text"] = lower_case(df["text"])
-    df = remove_author_info(df)
-    df = remove_special_chars(df)
-
-    # Stop words, shorten words, remove short words
-    df['processed'] = [lemmetize(doc) for doc in df["text"]]
-    df["processed"] = df['processed'].apply(lambda x: " ".join([word for word in x.split()
-                                                                if len(word) > 2]))
-    df['processed'] = remove_stop_words(df['processed'])
-    plot_frequency_words(df['processed'])
-
-    # Split to list of words
-    final = []
-    for doc in df["processed"]:
-        final.append(doc.split())
-    final = get_bigrams(final)
-    df["processed"] = final
-    df["title1"] = df["name"].str.split()
-    df["processed"] = df["title1"] + df["processed"]
-    df.to_pickle("df_proc.pkl")
-    df.to_csv("df_proc.csv")
-    return df
-
-
-def remove_author_info(df):
-    # Remove author line
-    out = []
-    for text in df['text']:
-        split = text.splitlines()
-        if len(split) > 3 and "author" in split[0]:
-            out_text = " ".join(split[3:])
-        else:
-            out_text = text
-        out.append(out_text)
-    df["text"] = out
-    df["len"] = df["text"].str.len()
-    df = df[df["len"] > 100]
-    return df
-
-
-def remove_special_chars(df):
-    # Remove url
-    df['text'] = remove_url(df['text'])
-
-    # Remove special chars and numbers
-    df['text'] = df['text'].str.replace("[^a-zA-Z#]", " ")
-
-    # Remove emails:
-    df["text"] = [re.sub('\S*@\S*\s?', '', text) for text in df["text"]]
-    df["text"] = df["text"] + df["name"]
-    return df
-
-
-def get_bigrams(final):
-    # Bigrams
-    bigram = gensim.models.Phrases(final, min_count=5, threshold=100)
-    bigram_mod = gensim.models.phrases.Phraser(bigram)
-    final = [bigram_mod[line] for line in final]
-    return final
-
-
-get_processed_data()
+p = Process()
+p.get_processed_data(cache=True)
