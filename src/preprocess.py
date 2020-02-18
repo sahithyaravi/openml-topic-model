@@ -32,6 +32,9 @@ class Process:
 
     def get_processed_data(self, cache: bool):
         dataset = Dataset()
+        if cache:
+            df = pd.read_pickle('df_proc.pkl')
+            return df
         df = dataset.get_openml_data(cache)
         df["text"] = [text.lower() for text in df["text"]]
         df = remove_author_info(df)
@@ -76,6 +79,3 @@ class Process:
         fig = go.Figure(data)
         plotly.offline.plot(fig)
 
-
-p = Process()
-p.get_processed_data(cache=True)
