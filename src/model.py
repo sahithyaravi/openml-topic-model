@@ -73,9 +73,10 @@ class Model:
         alpha_range = list(np.arange(0.01, 1, 0.3))
         alpha_range.append("symmetric")
         alpha_range.append("asymmetric")
+        alpha_range.append("auto")
         beta_range = list(np.arange(0.01, 1, 0.3))
         beta_range.append("symmetric")
-
+        beta_range.append("auto")
         # Use 50% of data
         corpus_sets = [self.doc_term_mat_train]
         model_results = {

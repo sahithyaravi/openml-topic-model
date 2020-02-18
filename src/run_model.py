@@ -7,5 +7,6 @@ if __name__ == '__main__':
     documents = list(df["processed"]. values)
     m = Model()
     m.train_test_split(documents)
-    m.base_model(num_topics=10)
+    #m.base_model(num_topics=15)
+    m.grid_search()
 
