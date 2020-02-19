@@ -64,7 +64,7 @@ class Model:
         coherence_lda = coherence_model_lda.get_coherence()
         # Visualize the topics
         vis_prepared = pyLDAvis.gensim.prepare(lda_model, self.doc_term_mat_train, self.dictionary)
-        pyLDAvis.save_html(vis_prepared, "base.html")
+        #pyLDAvis.save_html(vis_prepared, "base.html")
         print('\nCoherence Score: ', coherence_lda)
 
     def grid_search(self):

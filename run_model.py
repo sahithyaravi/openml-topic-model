@@ -1,10 +1,9 @@
-from src.preprocess import Process
+import pandas as pd
 from src.model import Model
 
 
 if __name__ == "__main__":
-    p = Process()
-    df = p.get_processed_data(cache=True)
+    df = pd.read_pickle("data/df_proc.pkl")
     documents = list(df["processed"]. values)
     m = Model()
     print("calling train test split")

@@ -17,7 +17,7 @@ class Process:
                                 "training", "prediction", "model", "test", "train",
                                 "author", "source", "https", "uci", "edu", "citation", "html", "policy", "datum", "please",
                                 "title", "dataset", "feature", "attribute", "attributes", "row", "column", "image", "file",
-                                "pixel",
+                                "price",
                                 "description", "cite", "publication", "result", "distribution", "point",
                                 "nominal", "enum", "string", "categorical", "number", "continuous", "numeric", "variable",
                                 "instance", "set", "classtype", "none", "note", "inf", "information", "type", "data",
@@ -35,7 +35,7 @@ class Process:
         if cache:
             df = pd.read_pickle('data/df_proc.pkl')
             return df
-        df = dataset.get_openml_data(cache)
+        df = dataset.get_openml_data(cache=True)
         df["text"] = [text.lower() for text in df["text"]]
         df = remove_author_info(df)
         pd.set_option('display.expand_frame_repr', False)
@@ -79,3 +79,5 @@ class Process:
         fig = go.Figure(data)
         plotly.offline.plot(fig)
 
+# p = Process()
+# p.get_processed_data(cache=False)
