@@ -14,8 +14,6 @@ from src.utils import compute_coherence_score
 
 sys.path.append(os.getcwd())
 
-df = pd.read_pickle("df_proc.pkl")
-
 
 class Model:
     def __init__(self):
@@ -24,18 +22,20 @@ class Model:
         self.lda_model = None
         self.dictionary = None
         self.grid_search_results = None
+        self.docs_train = None
+        self.docs_test = None
 
     def train_test_split(self, docs):
-        docs_train = docs[:2000]
-        docs_test = docs[2000:]
-        self.dictionary = corpora.Dictionary(docs_train)
+        self.docs_train = docs[:2000]
+        self.docs_test = docs[2000:]
+        self.dictionary = corpora.Dictionary(self.docs_train)
 
         # Filter terms that occur in more than 50% of docs
         self.dictionary.filter_extremes(no_above=0.5)
 
         # Convert to document term matrix (corpus)
-        self.doc_term_mat_train = [self.dictionary.doc2bow(doc) for doc in docs_train]
-        self.doc_term_mat_test = [self.dictionary.doc2bow(doc) for doc in docs_test]
+        self.doc_term_mat_train = [self.dictionary.doc2bow(doc) for doc in self.docs_train]
+        self.doc_term_mat_test = [self.dictionary.doc2bow(doc) for doc in self.docs_test]
 
     def base_model(self, num_topics=10):
         # LDA - This is our base model
@@ -58,7 +58,7 @@ class Model:
         # Compute Coherence Score for base model
         coherence_model_lda = CoherenceModel(model=lda_model,
                                              corpus=self.doc_term_mat_train,
-                                             texts=df['processed'].values,
+                                             texts=self.docs_train,
                                              dictionary=self.dictionary,
                                              coherence='c_v')
         coherence_lda = coherence_model_lda.get_coherence()
@@ -91,7 +91,7 @@ class Model:
                 for alpha in alpha_range:
                     for beta in beta_range:
                         cv, p = compute_coherence_score(corpus, self.dictionary, topic,
-                                                        alpha, beta, df["processed"].values,
+                                                        alpha, beta, self.docs_train,
                                                         self.doc_term_mat_test)
 
                         model_results['topics'].append(topic)
@@ -100,11 +100,11 @@ class Model:
                         model_results['coherence'].append(cv)
                         model_results['perplexity'].append(p)
         self.grid_search_results = pd.DataFrame(model_results)
-        self.grid_search_results.to_csv('results/lda_tuning_results.csv', index=False)
+        self.grid_search_results.to_csv('lda_tuning_results.csv', index=False)
         print("saved to results, done")
 
     def final_model(self):
-        results = pd.read_csv("results/lda_tuning_results.csv")
+        results = pd.read_csv("lda_tuning_results.csv")
         # results = results[results["topics"]== 6]
         more_topics = results[results["topics"] > 10]
         best_params = more_topics.sort_values(by="coherence", ascending=False)
@@ -133,7 +133,7 @@ class Model:
                                              coherence='c_v',
                                              corpus=self.doc_term_mat_train,
                                              dictionary=self.dictionary,
-                                             texts=df["processed"].values).get_coherence()
+                                             texts=self.docs_train).get_coherence()
         perplexity = lda_model.log_perplexity(self.doc_term_mat_test)
         print("coherence final model ", coherence_model_lda)
         print("perplexity final model ", perplexity)
@@ -146,7 +146,7 @@ class Model:
 
         # Visualize the topics
         LDAvis_prepared = pyLDAvis.gensim.prepare(lda_model, self.doc_term_mat, self.dictionary)
-        pyLDAvis.save_html(LDAvis_prepared, "results/out.html")
+        pyLDAvis.save_html(LDAvis_prepared, "out.html")
 
     def predict_unseen_data_topic(self):
         unseen_doc = self.doc_term_mat_test[0]
@@ -166,10 +166,10 @@ class Model:
             probs = dict(
                 lda_model.get_document_topics(self.dictionary.doc2bow(doc)))
             doc_tops.append(probs)
-        df["topics"] = doc_tops
+        #df["topics"] = doc_tops
         # map_dict = {0: "other", 1:"price", 2:"bio", 3:"cv"}
         # df["topic_str"] = df["topics"].map(map_dict)
-        df.to_csv("results/resultdf.csv")
+        #df.to_csv("resultdf.csv")
 
 
 

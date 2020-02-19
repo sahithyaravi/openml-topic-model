@@ -33,7 +33,7 @@ class Process:
     def get_processed_data(self, cache: bool):
         dataset = Dataset()
         if cache:
-            df = pd.read_pickle('df_proc.pkl')
+            df = pd.read_pickle('data/df_proc.pkl')
             return df
         df = dataset.get_openml_data(cache)
         df["text"] = [text.lower() for text in df["text"]]
