@@ -17,7 +17,12 @@ def remove_author_info(df):
             out_text = text
         out.append(out_text)
     df["text"] = out
-    df["len"] = df["text"].str.len()
+
+    return df
+
+
+def lower_case(df):
+    df["text"] = [text.lower() for text in df["text"]]
     return df
 
 
@@ -35,7 +40,7 @@ def remove_special_chars(df):
 
     # Remove emails:
     df["text"] = [re.sub('\S*@\S*\s?', '', text) for text in df["text"]]
-    df["text"] = df["text"] + df["name"]
+    df["len"] = df["text"].str.len()
     return df
 
 

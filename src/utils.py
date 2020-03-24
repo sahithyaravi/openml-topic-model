@@ -26,8 +26,8 @@ def compute_coherence_score(corpus, id2word, num_topics, alpha, eta, text, test)
     return coherence_model_lda.get_coherence(), perplexity
 
 
-def plot_word_cloud():
-    tempfile = datapath("model")
+def plot_word_cloud(lda):
+    # tempfile = datapath("model")
 
     wc = WordCloud(
         # background_color="white",
@@ -37,7 +37,7 @@ def plot_word_cloud():
         # stopwords=stop_words
     )
 
-    lda = gensim.models.LdaMulticore.load(tempfile)
+    # lda = gensim.models.LdaMulticore.load(tempfile)
 
     fig, axes = plt.subplots(2, round(lda.num_topics/2), figsize=(20, 20), sharex=True, sharey=True)
     fig.delaxes(axes[1, 3])
@@ -50,6 +50,7 @@ def plot_word_cloud():
             words.update(top_words)
             print("top_words\n", top_words)
             plt.gca().imshow(wc.fit_words(top_words))
+            # plt.savefig(f"WC_topics{t}.png")
             # plt.gca().axis("off")
             # plt.gca().set_title("Topic #"+str(t))
 
@@ -58,7 +59,8 @@ def plot_word_cloud():
     plt.margins(x=0, y=0)
     plt.tight_layout()
     plt.show()
-    plt.subplots(figsize =(8, 8))
+
+    plt.subplots(figsize=(8, 8))
     plt.imshow(wc.fit_words(words))
     plt.savefig('WC.png')
     plt.show()
