@@ -110,7 +110,7 @@ class Model:
         # and with a low beta they consist of few words.
 
         # Hyper parameter tuning:
-        topics_range = list(range(7, 20, 1))
+        topics_range = list(range(8, 20, 1))
         alpha_range = list(np.arange(0.01, 1, 0.3))
         alpha_range.append("symmetric")
         alpha_range.append("asymmetric")
