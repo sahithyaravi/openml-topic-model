@@ -118,7 +118,7 @@ class Model:
         beta_range = list(np.arange(0.01, 1, 0.3))
         beta_range.append("symmetric")
         beta_range.append("auto")
-        eta = self.get_eta(8)
+
         beta_range.append(eta)
         # Use 50% of data
         corpus_sets = [self.doc_term_mat_train]
@@ -132,7 +132,9 @@ class Model:
         for corpus in corpus_sets:
             for topic in topics_range:
                 for alpha in alpha_range:
-                    for beta in beta_range:
+                    # for beta in beta_range:
+                    if True:
+                        beta = self.get_eta(topic)
                         cv, p = compute_coherence_score(corpus, self.dictionary, topic,
                                                         alpha, beta, self.docs_train,
                                                         self.doc_term_mat_test)
