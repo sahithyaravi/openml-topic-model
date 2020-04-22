@@ -32,7 +32,7 @@ class Model:
         self.dictionary = corpora.Dictionary(self.docs_train)
 
         # # Filter terms that occur in more than 50% of docs
-        # self.dictionary.filter_extremes(no_above=0.7)
+        self.dictionary.filter_extremes(no_above=0.7)
 
         # Convert to document term matrix (corpus)
         self.doc_term_mat_train = [self.dictionary.doc2bow(doc) for doc in self.docs_train]
@@ -48,7 +48,7 @@ class Model:
 
     def get_eta(self, num_topics):
         self. eta = np.full((num_topics, len(self.dictionary)), 1 / (1 * num_topics))
-        # print(self.eta)
+
         self.set_priors(self.eta, 0,
                         ['gene', 'oncology', 'tumor'])
         self.set_priors(self.eta, 1,
@@ -67,24 +67,27 @@ class Model:
                         ['biology', 'yeast', 'patient', 'disease'])
         return self.eta
 
-    def base_model(self, num_topics=8):
+    def base_model(self, num_topics=8, eta='auto'):
         # LDA - This is our base model
-
-        eta = self.get_eta(num_topics)
-        lda_model = gensim.models.LdaMulticore(corpus=self.doc_term_mat_train,
-                                               id2word=self.dictionary,
-                                               alpha='asymmetric',
-                                               eta=eta, #'auto',
-                                               workers=3,
-                                               chunksize=100,
-                                               num_topics=num_topics,
-                                               random_state=200,
-                                               passes=1000,
-                                               per_word_topics=True)
+        if eta == 'seed':
+            eta = self.get_eta(num_topics)
+        lda_model = gensim.models.LdaModel(corpus=self.doc_term_mat_train,
+                                           id2word=self.dictionary,
+                                           alpha='auto',
+                                           eta=eta,
+                                           # workers=3,
+                                           chunksize=100,
+                                           iterations=5000,
+                                           num_topics=num_topics,
+                                           random_state=200,
+                                           passes=200,
+                                           per_word_topics=True)
 
         topics = lda_model.print_topics()
 
         print("LDA topics for base model:")
+        print("alpha", lda_model.alpha)
+        print("beta", lda_model.eta)
         for topic in topics:
             print(topic)
 
@@ -203,18 +206,17 @@ class Model:
         lda.update(self.doc_term_mat_test) # Update the model by incrementally training on the new corpus
         vector = lda[unseen_doc]  # get topic probability distribution for a new document        print(vector)
 
-    def save_all_topics(self, docs):
+    def save_all_topics(self, lda_model):
+        docs = self.docs_train
         doc_tops = []
-        temp_file = datapath("model")
-        lda_model = gensim.models.LdaMulticore.load(temp_file)
-        topics = lda_model.show_topics(num_words=25)
-
-        print(topics)
         for doc in docs:
             probs = dict(
                 lda_model.get_document_topics(self.dictionary.doc2bow(doc)))
-            doc_tops.append(probs)
-        #df["topics"] = doc_tops
+            # doc_tops.append(probs)
+            t = max(probs, key=probs.get())
+            doc_tops.append(t)
+        return doc_tops
+        # df["topics"] = doc_tops
         # map_dict = {0: "other", 1:"price", 2:"bio", 3:"cv"}
         # df["topic_str"] = df["topics"].map(map_dict)
         #df.to_csv("resultdf.csv")

@@ -15,20 +15,22 @@ class Dataset:
         dataset_list = datasets.list_datasets(output_format='dataframe', status='all')
         ids = []
         names = []
-        desc = []
+        description = []
         for did in dataset_list['did']:
             try:
                 data = datasets.get_dataset(did, download_data=False)
                 if data.description is not None and data.name is not None:
                     ids.append(did)
                     names.append(data.name)
-                    desc.append(data.description + " " + data.name + " ")
+                    description.append(data.description + " " + data.name + " ")
             except:
+                # TODO: Exception type
+                # For some reasons we get multiple exceptions apart from FileNotFound
                 pass
         self.df = pd.DataFrame()
         self.df['id'] = ids
         self.df['name'] = names
-        self.df['text'] = desc
+        self.df['text'] = description
         self.df_unique = self._remove_duplicates()
         return self.df_unique
 

@@ -33,13 +33,14 @@ def remove_special_chars(df):
     :return: df with special chars removed from text column
     """
     # Remove url
-    df['text'] = [re.sub(r"http\S+", "", text) for text in df["text"]]
+    df['text'] = [re.sub(r"http\S+", " ", text) for text in df["text"]]
 
     # Remove special chars and numbers
     df['text'] = df['text'].str.replace("[^a-zA-Z#]", " ")
 
     # Remove emails:
-    df["text"] = [re.sub('\S*@\S*\s?', '', text) for text in df["text"]]
+    df["text"] = [re.sub(r"\b[A-Z\.]{2,}s?\b", "", text) for text in df["text"]]
+    df["text"] = [re.sub('\S*@\S*\s?', ' ', text) for text in df["text"]]
     df["len"] = df["text"].str.len()
     return df
 

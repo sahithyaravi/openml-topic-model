@@ -16,7 +16,7 @@ class Process:
         self.stop_words.extend(["example", "experiment", "sample", "problem", "input", "output", "set", "task", "study",
                                 "training", "prediction", "model", "test", "train",
                                 "author", "source", "https", "uci", "edu", "citation", "html", "policy", "datum",
-                                "please",
+                                "please", "arff",
                                 "title", "dataset", "feature", "attribute", "attributes", "row", "column", "file",
                                 "description", "cite", "publication", "result", "distribution", "point",
                                 "nominal", "enum", "string", "categorical", "number", "continuous", "numeric",
@@ -27,19 +27,21 @@ class Process:
                                 "imputation", "classification", "regression",
                                 "colinearity", "degree", "average",
                                 "unknown", "several", "version", "original",
-                                "name", "project", "program", "paper", "thesis", "database", "format"
+                                "name", "project", "program", "paper", "thesis", "database", "format",
+                                "unit"
                                 ])
         self.nlp = spacy.load('en')  # python -m spacy download en using admin on conda prompt
 
     def get_processed_data(self, df):
-        df = lower_case(df)
-        df = remove_author_info(df)
+
+        df = remove_author_info(df)  # first 3 lines.
         pd.set_option('display.expand_frame_repr', False)
         df = remove_special_chars(df)
+        df = lower_case(df)
 
         df['processed'] = [self.lemmetize(doc) for doc in df["text"]]
         df["processed"] = df['processed'].apply(lambda x: " ".join([word for word in x.split()
-                                                                    if len(word) > 2]))
+                                                                    if len(word) > 3]))
         df['processed'] = remove_stop_words(df['processed'], self.stop_words)
         self.plot_frequency_words(df['processed'])
         #
@@ -57,8 +59,10 @@ class Process:
         sents = self.nlp(doc)
         doc_new = []
         for token in sents:
-            if token.pos_ in ['NOUN']:
-                doc_new.append(token.lemma_)
+            if token.pos_ in ['NOUN', 'PROPN']:
+                if token.ent_type_ not in ['PERSON', 'GPE', 'ORG', 'NORP']:
+                    doc_new.append(token.lemma_)
+
         return " ".join(doc_new)
 
     def plot_frequency_words(self, col):

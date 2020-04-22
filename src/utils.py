@@ -7,7 +7,7 @@ from gensim.test.utils import datapath
 
 def compute_coherence_score(corpus, id2word, num_topics, alpha, eta, text, test):
     lda_model = gensim.models.LdaModel(corpus=corpus,
-                                       iterations = 5000,
+                                       iterations=5000,
                                            #workers=3,
                                            id2word=id2word,
                                            alpha=alpha,
@@ -46,7 +46,7 @@ def plot_word_cloud(lda):
         if t != lda.num_topics:
             # plt.figure()
             fig.add_subplot(ax)
-            top_words = dict(lda.show_topic(t, 200))
+            top_words = dict(lda.show_topic(t, 50))
             words.update(top_words)
             print("top_words\n", top_words)
             plt.gca().imshow(wc.fit_words(top_words))
