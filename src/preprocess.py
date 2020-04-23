@@ -59,9 +59,9 @@ class Process:
         sents = self.nlp(doc)
         doc_new = []
         for token in sents:
-            if token.pos_ in ['NOUN', 'PROPN']:
-                if token.ent_type_ not in ['PERSON', 'GPE', 'ORG', 'NORP']:
-                    doc_new.append(token.lemma_)
+            if token.pos_ in ['NOUN']: #, 'PROPN']:
+                #if token.ent_type_ not in ['PERSON', 'GPE', 'ORG', 'NORP']:
+                doc_new.append(token.lemma_)
 
         return " ".join(doc_new)
 

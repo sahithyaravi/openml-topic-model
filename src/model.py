@@ -32,7 +32,7 @@ class Model:
         self.dictionary = corpora.Dictionary(self.docs_train)
 
         # # Filter terms that occur in more than 50% of docs
-        self.dictionary.filter_extremes(no_above=0.7)
+        #self.dictionary.filter_extremes(no_above=0.5)
 
         # Convert to document term matrix (corpus)
         self.doc_term_mat_train = [self.dictionary.doc2bow(doc) for doc in self.docs_train]
@@ -67,13 +67,13 @@ class Model:
                         ['biology', 'yeast', 'patient', 'disease'])
         return self.eta
 
-    def base_model(self, num_topics=8, eta='auto'):
+    def base_model(self, num_topics=8, eta='auto', alpha='auto'):
         # LDA - This is our base model
         if eta == 'seed':
             eta = self.get_eta(num_topics)
         lda_model = gensim.models.LdaModel(corpus=self.doc_term_mat_train,
                                            id2word=self.dictionary,
-                                           alpha='auto',
+                                           alpha= alpha,
                                            eta=eta,
                                            # workers=3,
                                            chunksize=100,
@@ -114,15 +114,13 @@ class Model:
 
         # Hyper parameter tuning:
         topics_range = list(range(8, 20, 1))
-        alpha_range = list(np.arange(0.01, 1, 0.3))
+        alpha_range = list(np.arange(0.01, 0.5, 0.1))
         alpha_range.append("symmetric")
         alpha_range.append("asymmetric")
         alpha_range.append("auto")
-        # beta_range = list(np.arange(0.01, 1, 0.3))
-        # beta_range.append("symmetric")
-        # beta_range.append("auto")
-        #
-        # beta_range.append(eta)
+        beta_range = list(np.arange(0.01, 0.5, 0.1))
+        beta_range.append("symmetric")
+        beta_range.append("auto")
         # Use 50% of data
         corpus_sets = [self.doc_term_mat_train]
         model_results = {
@@ -135,18 +133,18 @@ class Model:
         for corpus in corpus_sets:
             for topic in topics_range:
                 for alpha in alpha_range:
-                    # for beta in beta_range:
-                    if True:
-                        beta = self.get_eta(topic)
-                        cv, p = compute_coherence_score(corpus, self.dictionary, topic,
-                                                        alpha, beta, self.docs_train,
-                                                        self.doc_term_mat_test)
+                    for beta in beta_range:
+                        if True:
+                            # beta = self.get_eta(topic)
+                            cv, p = compute_coherence_score(corpus, self.dictionary, topic,
+                                                            alpha, beta, self.docs_train,
+                                                            self.doc_term_mat_test)
 
-                        model_results['topics'].append(topic)
-                        model_results['alpha'].append(alpha)
-                        model_results['beta'].append(beta)
-                        model_results['coherence'].append(cv)
-                        model_results['perplexity'].append(p)
+                            model_results['topics'].append(topic)
+                            model_results['alpha'].append(alpha)
+                            model_results['beta'].append(beta)
+                            model_results['coherence'].append(cv)
+                            model_results['perplexity'].append(p)
         self.grid_search_results = pd.DataFrame(model_results)
         self.grid_search_results.to_csv('lda_tuning_results.csv', index=False)
         print("saved to results, done")
