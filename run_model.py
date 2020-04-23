@@ -1,7 +1,7 @@
 import pandas as pd
-from src.preprocess import Process
+#from src.preprocess import Process
 from src.model import Model
-from src.utils import plot_word_cloud
+#from src.utils import plot_word_cloud
 """
     from src.getdata import Dataset
     d = Dataset()
