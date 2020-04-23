@@ -6,9 +6,9 @@ from gensim.test.utils import datapath
 
 
 def compute_coherence_score(corpus, id2word, num_topics, alpha, eta, text, test):
-    lda_model = gensim.models.LdaModel(corpus=corpus,
-                                       iterations=5000,
-                                           #workers=3,
+    lda_model = gensim.models.LdaMulticore(corpus=corpus,
+                                           iterations=5000,
+                                           workers=3,
                                            id2word=id2word,
                                            alpha=alpha,
                                            eta=eta,
