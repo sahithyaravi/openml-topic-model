@@ -23,7 +23,7 @@ def compute_coherence_score(corpus, id2word, num_topics, alpha, eta, text, test)
                                          dictionary=id2word,
                                          texts=text)
     perplexity = lda_model.log_perplexity(test)
-    return coherence_model_lda.get_coherence(), perplexity
+    return coherence_model_lda.get_coherence(), perplexity, lda_model
 
 
 def plot_word_cloud(lda):

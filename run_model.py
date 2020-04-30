@@ -1,7 +1,7 @@
 import pandas as pd
 #from src.preprocess import Process
 from src.model import Model
-#from src.utils import plot_word_cloud
+# from src.utils import plot_word_cloud
 """
     from src.getdata import Dataset
     d = Dataset()
@@ -21,9 +21,9 @@ if __name__ == "__main__":
     m = Model()
     print("calling train test split")
     m.train_test_split(documents)
-    print("calling base model")
+    #print("calling base model")
     # lda = m.base_model(num_topics=8, alpha='asymmetric', eta='symmetric')
     print("Calling grid search")
     m.grid_search()
-    # # lda = m.final_model()
-    # plot_word_cloud(lda)
+    #lda = m.final_model()
+   # plot_word_cloud(lda)

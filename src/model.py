@@ -32,7 +32,7 @@ class Model:
         self.dictionary = corpora.Dictionary(self.docs_train)
 
         # # Filter terms that occur in more than 50% of docs
-        #self.dictionary.filter_extremes(no_above=0.5)
+        self.dictionary.filter_extremes(no_above=0.5)
 
         # Convert to document term matrix (corpus)
         self.doc_term_mat_train = [self.dictionary.doc2bow(doc) for doc in self.docs_train]
@@ -136,7 +136,7 @@ class Model:
                     for beta in beta_range:
                         if True:
                             # beta = self.get_eta(topic)
-                            cv, p = compute_coherence_score(corpus, self.dictionary, topic,
+                            cv, p, _ = compute_coherence_score(corpus, self.dictionary, topic,
                                                             alpha, beta, self.docs_train,
                                                             self.doc_term_mat_test)
 
@@ -152,38 +152,25 @@ class Model:
     def final_model(self):
         results = pd.read_csv("lda_tuning_results.csv")
         # results = results[results["topics"]== 6]
-        more_topics = results[results["topics"] > 5]
-        best_params = more_topics.sort_values(by="coherence", ascending=False)
+        # more_topics = results[results["topics"] > 5]
+        best_params = results.sort_values(by="coherence", ascending=False)
+        print(best_params.head())
         # best_params = best_params[best_params["perplexity"] > -7]
-        beta = best_params["beta"].values[0]
-        alpha = best_params["alpha"].values[0]
-        print(best_params["coherence"].values[0])
-        num_topics = int(best_params["topics"].values[0])
+
+        beta = best_params["beta"].values[1]
+        alpha = best_params["alpha"].values[1]
+        print(best_params["coherence"].values[1])
+        num_topics = int(best_params["topics"].values[1])
         print("topics ", num_topics)
         if beta != "symmetric" and beta != 'auto':
             beta = float(beta)
         if alpha != "symmetric" and alpha != "asymmetric" and alpha != "auto":
             alpha = float(alpha)
-        lda_model = gensim.models.LdaModel(corpus=self.doc_term_mat_train,
-                                           #workers=3,
-                                           id2word=self.dictionary,
-                                           random_state=100,
-                                           chunksize=100,
-                                           passes=200,
-                                           iterations=1000,
-                                           per_word_topics=True,
-                                           eta=beta,
-                                           alpha=alpha,
-                                           num_topics=num_topics)
-
-        coherence_model_lda = CoherenceModel(model=lda_model,
-                                             coherence='c_v',
-                                             corpus=self.doc_term_mat_train,
-                                             dictionary=self.dictionary,
-                                             texts=self.docs_train).get_coherence()
-        perplexity = lda_model.log_perplexity(self.doc_term_mat_test)
-        print("coherence final model ", coherence_model_lda)
-        print("perplexity final model ", perplexity)
+        cv, p, lda_model = compute_coherence_score(self.doc_term_mat_train, self.dictionary, num_topics,
+                                        alpha, beta, self.docs_train,
+                                        self.doc_term_mat_test)
+        print("coherence final model ", cv)
+        print("perplexity final model ", p)
         topics = lda_model.show_topics(num_words=25)
         temp_path = datapath("model")
         lda_model.save(temp_path)
