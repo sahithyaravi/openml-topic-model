@@ -5,7 +5,6 @@ import spacy
 from nltk import FreqDist
 import plotly
 import plotly.graph_objs as go
-from src.getdata import Dataset
 from src.preprocess_functions import *
 
 
@@ -13,38 +12,48 @@ class Process:
     def __init__(self):
         nltk.download('stopwords')
         self.stop_words = stopwords.words('english')
-        self.stop_words.extend(["example", "experiment", "sample", "problem", "input", "output", "set", "task", "study",
+        self.stop_words.extend(["example", "experiment", "sample", "problem", "input", "output",
+                                "set", "task", "study",
                                 "training", "prediction", "model", "test", "train",
-                                "author", "source", "https", "uci", "edu", "citation", "html", "policy", "datum",
-                                "please", "arff",
-                                "title", "dataset", "feature", "attribute", "attributes", "row", "column", "file",
-                                "description", "cite", "publication", "result", "distribution", "point",
-                                "nominal", "enum", "string", "categorical", "number", "continuous", "numeric",
-                                "variable",
-                                "instance", "set", "classtype", "none", "note", "inf", "information", "type", "data",
+                                "author", "source", "https", "uci", "edu",
+                                "citation", "html", "policy", "datum",
+                                "please", "arff", "title", "dataset", "feature",
+                                "attribute", "attributes", "row", "column", "file",
+                                "description", "cite", "publication", "result",
+                                "distribution", "point",
+                                "nominal", "enum", "string", "categorical",
+                                "number", "continuous", "numeric",
+                                "variable", "instance", "set", "classtype", "none", "note", "inf",
+                                "information", "type", "data",
                                 "target", "class", "positive", "negative", "value",
                                 "time", "date", "year",
                                 "imputation", "classification", "regression",
                                 "colinearity", "degree", "average",
-                                "unknown", "several", "version", "original",
-                                "name", "project", "program", "paper", "thesis", "database", "format",
-                                "unit"
+                                "unknown", "several", "version", "original", "unit",
+                                "name", "project", "program",
+                                "paper", "thesis", "database", "format"
                                 ])
-        self.nlp = spacy.load('en')  # python -m spacy download en using admin on conda prompt
+        # run 'python -m spacy download en' as admin on conda prompt
+        self.nlp = spacy.load('en')
 
     def get_processed_data(self, df):
+        """
 
-        df = remove_author_info(df)  # first 3 lines.
+        :param df: data frame created using src.getdata.Dataset, contains "text" column
+        :return: processed data frame with text processed and returned in "processed" column of data frame
+        """
+
+        df = remove_author_info(df)
         pd.set_option('display.expand_frame_repr', False)
         df = remove_special_chars(df)
         df = lower_case(df)
-
+        # Lemmetize documents
         df['processed'] = [self.lemmetize(doc) for doc in df["text"]]
+        # Remove words of length 0-2
         df["processed"] = df['processed'].apply(lambda x: " ".join([word for word in x.split()
                                                                     if len(word) > 3]))
         df['processed'] = remove_stop_words(df['processed'], self.stop_words)
         self.plot_frequency_words(df['processed'])
-        #
         # Split to list of words
         processed_output = []
         for doc in df["processed"]:
@@ -59,8 +68,8 @@ class Process:
         sents = self.nlp(doc)
         doc_new = []
         for token in sents:
-            if token.pos_ in ['NOUN']: #, 'PROPN']:
-                #if token.ent_type_ not in ['PERSON', 'GPE', 'ORG', 'NORP']:
+            if token.pos_ in ['NOUN']:  # 'PROPN'
+                # if token.ent_type_ not in ['PERSON', 'GPE', 'ORG', 'NORP']:
                 doc_new.append(token.lemma_)
 
         return " ".join(doc_new)
@@ -77,5 +86,3 @@ class Process:
         fig = go.Figure(data)
         plotly.offline.plot(fig)
 
-# p = Process()
-# p.get_processed_data(cache=False)
