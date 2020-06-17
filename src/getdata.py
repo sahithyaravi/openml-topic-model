@@ -1,5 +1,6 @@
 from openml import datasets
 import pandas as pd
+from collections import defaultdict
 
 
 class Dataset:
@@ -9,28 +10,23 @@ class Dataset:
 
     def get_dataset(self):
         """
-
         :return: unique dataset descriptions with length min=50
         """
         dataset_list = datasets.list_datasets(output_format='dataframe', status='all')
-        ids = []
-        names = []
-        description = []
-        for did in dataset_list['did']:
+        data_dict = defaultdict(list)
+        for did in dataset_list['did'][:2]:
             try:
                 data = datasets.get_dataset(did, download_data=False)
                 if data.description is not None and data.name is not None:
-                    ids.append(did)
-                    names.append(data.name)
-                    description.append(data.description + " " + data.name + " ")
+                    data_dict['id'].append(did)
+                    data_dict['name'].append(data.name)
+                    data_dict['text'].append(data.description + " " + data.name + " ")
             except:
                 # TODO: Exception type
                 # For some reasons we get multiple exceptions apart from FileNotFound
                 pass
-        self.df = pd.DataFrame()
-        self.df['id'] = ids
-        self.df['name'] = names
-        self.df['text'] = description
+
+        self.df = pd.DataFrame(data_dict)
         self.df_unique = self._remove_duplicates()
         return self.df_unique
 
@@ -43,7 +39,7 @@ class Dataset:
         self.df["len"] = self.df["text"].str.len()
         df_new = pd.DataFrame()
         self.df["len"].fillna(0, inplace=True)
-
+        # iterate through groups of same name and pick the row with longest description
         for name, group in grouped:
             idx = group["len"].idxmax()  # index of maximum len
             df_new = pd.concat([df_new, group.loc[[idx]]], ignore_index=True)

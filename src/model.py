@@ -136,9 +136,13 @@ class Model:
                     for beta in beta_range:
                         if True:
                             # beta = self.get_eta(topic)
-                            cv, p, _ = compute_coherence_score(corpus, self.dictionary, topic,
-                                                            alpha, beta, self.docs_train,
-                                                            self.doc_term_mat_test)
+                            cv, p, _ = compute_coherence_score(corpus,
+                                                               self.dictionary,
+                                                               topic,
+                                                               alpha,
+                                                               beta,
+                                                               self.docs_train,
+                                                               self.doc_term_mat_test)
 
                             model_results['topics'].append(topic)
                             model_results['alpha'].append(alpha)
@@ -149,29 +153,30 @@ class Model:
         self.grid_search_results.to_csv('lda_tuning_results.csv', index=False)
         print("saved to results, done")
 
-    def final_model(self):
-        results = pd.read_csv("lda_tuning_results.csv")
-        # results = results[results["topics"]== 6]
-        # more_topics = results[results["topics"] > 5]
+    def final_model(self, path='lda_tuning_results.csv', n=0):
+        results = pd.read_csv(path)
         best_params = results.sort_values(by="coherence", ascending=False)
-        print(best_params.head())
-        # best_params = best_params[best_params["perplexity"] > -7]
-
-        beta = best_params["beta"].values[1]
-        alpha = best_params["alpha"].values[1]
-        print(best_params["coherence"].values[1])
-        num_topics = int(best_params["topics"].values[1])
+        print(best_params.head(10))
+        best_params = best_params[best_params["alpha"] == "0.01"]
+        beta = best_params["beta"].values[n]
+        alpha = best_params["alpha"].values[n]
+        print(best_params["coherence"].values[n])
+        num_topics = int(best_params["topics"].values[n])
         print("topics ", num_topics)
         if beta != "symmetric" and beta != 'auto':
             beta = float(beta)
         if alpha != "symmetric" and alpha != "asymmetric" and alpha != "auto":
             alpha = float(alpha)
-        cv, p, lda_model = compute_coherence_score(self.doc_term_mat_train, self.dictionary, num_topics,
-                                        alpha, beta, self.docs_train,
-                                        self.doc_term_mat_test)
+        cv, p, lda_model = compute_coherence_score(self.doc_term_mat_train,
+                                                   self.dictionary,
+                                                   num_topics,
+                                                   alpha,
+                                                   beta,
+                                                   self.docs_train,
+                                                   self.doc_term_mat_test)
         print("coherence final model ", cv)
         print("perplexity final model ", p)
-        topics = lda_model.show_topics(num_words=25)
+        topics = lda_model.show_topics(num_topics= num_topics, num_words=10)
         temp_path = datapath("model")
         lda_model.save(temp_path)
 

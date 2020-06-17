@@ -13,9 +13,9 @@ def compute_coherence_score(corpus, id2word, num_topics, alpha, eta, text, test)
                                            alpha=alpha,
                                            eta=eta,
                                            num_topics=num_topics,
-                                           random_state=100,
+                                           random_state=80,
                                            chunksize=100,
-                                           passes=200,
+                                           passes=400,
                                            per_word_topics=True)
     coherence_model_lda = CoherenceModel(model=lda_model,
                                          coherence='c_v',
@@ -46,7 +46,7 @@ def plot_word_cloud(lda):
         if t != lda.num_topics:
             # plt.figure()
             fig.add_subplot(ax)
-            top_words = dict(lda.show_topic(t, 50))
+            top_words = dict(lda.show_topic(t, 10))
             words.update(top_words)
             print("top_words\n", top_words)
             plt.gca().imshow(wc.fit_words(top_words))
