@@ -13,7 +13,7 @@ def compute_coherence_score(corpus, id2word, num_topics, alpha, eta, text, test)
                                            alpha=alpha,
                                            eta=eta,
                                            num_topics=num_topics,
-                                           random_state=80,
+                                           random_state=1,
                                            chunksize=100,
                                            passes=400,
                                            per_word_topics=True)
@@ -30,7 +30,7 @@ def plot_word_cloud(lda):
     # tempfile = datapath("model")
 
     wc = WordCloud(
-        # background_color="white",
+        background_color="white",
         # max_words=2000,
         # width=1024,
         # height=720,
@@ -43,23 +43,21 @@ def plot_word_cloud(lda):
     fig.delaxes(axes[1, 3])
     words = {}
     for t, ax in enumerate(axes.flatten()):
+        print(t)
         if t != lda.num_topics:
             # plt.figure()
             fig.add_subplot(ax)
-            top_words = dict(lda.show_topic(t, 10))
+            top_words = dict(lda.show_topic(t, 20))
             words.update(top_words)
             print("top_words\n", top_words)
             plt.gca().imshow(wc.fit_words(top_words))
-            # plt.savefig(f"WC_topics{t}.png")
-            # plt.gca().axis("off")
-            # plt.gca().set_title("Topic #"+str(t))
 
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.axis('off')
     plt.margins(x=0, y=0)
     plt.tight_layout()
+    plt.savefig('wc_topics')
     plt.show()
-
     plt.subplots(figsize=(8, 8))
     plt.imshow(wc.fit_words(words))
     plt.savefig('WC.png')

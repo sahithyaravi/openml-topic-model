@@ -27,6 +27,7 @@ class Model:
         self.eta = None
 
     def train_test_split(self, docs):
+        # docs = [d.split() for d in docs]
         self.docs_train = docs
         self.docs_test = docs[5000:]
         self.dictionary = corpora.Dictionary(self.docs_train)
@@ -73,14 +74,14 @@ class Model:
             eta = self.get_eta(num_topics)
         lda_model = gensim.models.LdaModel(corpus=self.doc_term_mat_train,
                                            id2word=self.dictionary,
-                                           alpha= alpha,
+                                           alpha=alpha,
                                            eta=eta,
                                            # workers=3,
                                            chunksize=100,
                                            iterations=5000,
                                            num_topics=num_topics,
                                            random_state=200,
-                                           passes=200,
+                                           passes=100,
                                            per_word_topics=True)
 
         topics = lda_model.print_topics()
@@ -117,7 +118,7 @@ class Model:
         alpha_range = list(np.arange(0.01, 0.5, 0.1))
         alpha_range.append("symmetric")
         alpha_range.append("asymmetric")
-        #alpha_range.append("auto")
+        alpha_range.append("auto")
         beta_range = list(np.arange(0.01, 0.5, 0.1))
         beta_range.append("symmetric")
         #beta_range.append("auto")
@@ -155,9 +156,12 @@ class Model:
 
     def final_model(self, path='lda_tuning_results.csv', n=0):
         results = pd.read_csv(path)
-        best_params = results.sort_values(by="coherence", ascending=False)
+        best_params = results
+        # best_params = results[results["alpha"].isin(["symmetric", "asymmetric"])]
+        # best_params = best_params[best_params["beta"] == "symmetric"]
+        best_params = best_params.sort_values(by="coherence", ascending=False)
         print(best_params.head(10))
-        best_params = best_params[best_params["alpha"] == "0.01"]
+
         beta = best_params["beta"].values[n]
         alpha = best_params["alpha"].values[n]
         print(best_params["coherence"].values[n])
@@ -167,6 +171,7 @@ class Model:
             beta = float(beta)
         if alpha != "symmetric" and alpha != "asymmetric" and alpha != "auto":
             alpha = float(alpha)
+        print(alpha, beta, num_topics)
         cv, p, lda_model = compute_coherence_score(self.doc_term_mat_train,
                                                    self.dictionary,
                                                    num_topics,
@@ -176,12 +181,14 @@ class Model:
                                                    self.doc_term_mat_test)
         print("coherence final model ", cv)
         print("perplexity final model ", p)
-        topics = lda_model.show_topics(num_topics= num_topics, num_words=10)
+        print(lda_model)
+
         temp_path = datapath("model")
         lda_model.save(temp_path)
-
-        for topic in topics:
-            print(topic)
+        topics = lda_model.show_topics(formatted=False)
+        print(lda_model.num_topics)
+        for idx, topic in topics:
+            print('{}'.format([w[0] for w in topic]))
 
         # Visualize the topics
         LDAvis_prepared = pyLDAvis.gensim.prepare(lda_model, self.doc_term_mat_train, self.dictionary)

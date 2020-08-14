@@ -60,8 +60,6 @@ class Process:
             processed_output.append(doc.split())
         df["processed"] = get_bigrams(processed_output)
 
-        df.to_pickle("df_proc.pkl")
-        df.to_csv("df_proc.csv")
         return df
 
     def lemmetize(self, doc):
