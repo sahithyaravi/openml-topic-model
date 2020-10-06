@@ -1,6 +1,8 @@
 import pandas as pd
-from src.model import Model
+import shutil, os
 
+from src.model import Model
+from config import *
 
 def download_entire_dataset():
     from src.getdata import Dataset
@@ -9,27 +11,53 @@ def download_entire_dataset():
     df_raw.to_csv('openml_dataset.csv')
 
 
-def process_dataset():
+def process_dataset(parts_of_speech):
     from src.preprocess import Process
     df_raw = pd.read_csv("data/openml_dataset.csv")
-    processor = Process()
+    processor = Process(parts_of_speech=parts_of_speech)
     df_proc = processor.get_processed_data(df_raw)
     df_proc.to_csv('data/openml_dataset_processed.csv')
     df_proc.to_pickle('data/openml_dataset_processed.pkl')
 
 
 if __name__ == "__main__":
+    if PROCESS_DATASET:
+        process_dataset(parts_of_speech=PROCESSING_PARTS_OF_SPEECH_INCLUDED)
+
     df = pd.read_pickle('data/openml_dataset_processed.pkl')
     documents = df["processed"].values
-    model = Model()
-    print("calling train test split")
-    model.train_test_split(documents)
-    print("calling base model")
-    base_lda = model.base_model(num_topics=11, alpha='auto', eta='auto')
-    print(base_lda.eta, base_lda.alpha)
-    # # print("Calling grid search")
-    # # model.grid_search()
-    # final_lda = model.final_model(path='results/noun_filter/lda_tuning_results.csv')
+    POS = PROCESSING_PARTS_OF_SPEECH_INCLUDED.join("_")
+    FILTER = FILTER_WORDS
+    result_folder = f"results/{POS}_{FILTER}/"
+    if not os.path.exists(result_folder):
+        os.mkdir(f"results/{POS}_{FILTER}")
+    #
+    # print("calling train test split")
+    # model = Model()
+    # model.train_test_split(documents, filter=FILTER, df=df)
+    #
+    # print("calling base model")
+    # base_lda = model.base_model(num_topics=10, alpha='asymmetric', eta='auto')
+    # print(base_lda.eta, base_lda.alpha)
+    #
+    # if GRID_SEARCH:
+    #     print("Calling grid search")
+    #     model.grid_search(result_folder)
+    #     final_lda, result_dict = model.final_model(n=0, path=result_folder+'lda_tuning_results.csv',
+    #                                                result_folder=result_folder)
+    #     model.save_all_topics(lda_model=final_lda, folder_path=result_folder)
+    #
+    # result_dict['filter'] = FILTER
+    # result_dict['pos'] = POS
+    # if os.path.exists("results/results_all_runs.pkl"):
+    #     results = pd.read_pickle("results/results_all_runs.pkl")
+    # else:
+    #     results = pd.DataFrame()
+    #
+    # results.append(pd.DataFrame(result_dict.items()), ignore_index=True)
+    # print(result_dict)
     # print("finalize and plot word cloud")
     # from src.utils import plot_word_cloud
-    # plot_word_cloud(final_lda)
+    # plot_word_cloud(final_lda, result_folder)
+    #
+    #

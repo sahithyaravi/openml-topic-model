@@ -9,7 +9,7 @@ from src.preprocess_functions import *
 
 
 class Process:
-    def __init__(self):
+    def __init__(self, parts_of_speech=['NOUN', 'PROPN']):
         nltk.download('stopwords')
         self.stop_words = stopwords.words('english')
         self.stop_words.extend(["example", "experiment", "sample", "problem", "input", "output",
@@ -35,6 +35,7 @@ class Process:
                                 ])
         # run 'python -m spacy download en' as admin on conda prompt
         self.nlp = spacy.load('en')
+        self.parts_of_speech = parts_of_speech
 
     def get_processed_data(self, df):
         """
@@ -47,6 +48,7 @@ class Process:
         pd.set_option('display.expand_frame_repr', False)
         df = remove_special_chars(df)
         df = lower_case(df)
+
         # Lemmetize documents
         df['processed'] = [self.lemmetize(doc) for doc in df["text"]]
         # Remove words of length 0-2
@@ -65,10 +67,11 @@ class Process:
     def lemmetize(self, doc):
         sents = self.nlp(doc)
         doc_new = []
+        # https://spacy.io/usage/linguistic-features
         for token in sents:
-            if token.pos_ in ['NOUN']:  # 'PROPN'
-                # if token.ent_type_ not in ['PERSON', 'GPE', 'ORG', 'NORP']:
-                doc_new.append(token.lemma_)
+            if token.pos_ in self.parts_of_speech:
+                if token.ent_type_ not in ['PERSON', 'GPE', 'ORG', 'NORP']:
+                    doc_new.append(token.lemma_)
 
         return " ".join(doc_new)
 
