@@ -134,8 +134,9 @@ class Model:
         alpha_range.append("symmetric")
         alpha_range.append("asymmetric")
         # alpha_range.append("auto")
-        beta_range = list(np.arange(0.01, 0.21, 0.05))
+        beta_range = [] # list(np.arange(0.01, 0.21, 0.05))
         beta_range.append("symmetric")
+        # beta_range.append("asymmetric")
         # beta_range.append("auto")
         # Use 50% of data
         corpus_sets = [self.doc_term_mat_train]
@@ -248,9 +249,11 @@ class Model:
                 lda_model.get_document_topics(self.dictionary.doc2bow(doc)))
             topic_probabilities.append(probs)
             t = max(probs, key=probs.get)
-
-            best_topics.append(t)
+            p = max(probs.values())
             topic_info.append(topics[t])
+            if p < 0.2:
+                t = -1
+            best_topics.append(t)
         self.df['distribution_topics'] = topic_probabilities
         self.df["best_topic"] = best_topics
         self.df["topic_info"] = topic_info

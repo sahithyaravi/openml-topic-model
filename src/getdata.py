@@ -1,12 +1,15 @@
+import openml
 from openml import datasets
 import pandas as pd
 from collections import defaultdict
 
 
 class Dataset:
-    def __init__(self):
+    def __init__(self, config='production'):
         self.df = None
         self.df_unique = None
+        if config == 'test':
+            openml.config.start_using_configuration_for_example()
 
     def get_dataset(self):
         """
@@ -28,6 +31,7 @@ class Dataset:
                 pass
 
         self.df = pd.DataFrame(data_dict)
+        self.df.sort_values(by='id', inplace=True)
         self.df_unique = self._remove_duplicates()
         return self.df_unique
 
