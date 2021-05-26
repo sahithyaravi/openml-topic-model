@@ -46,7 +46,7 @@ def run():
     if FINAL_MODEL:
         final_lda, result_dict = model.final_model(n=0, path=result_folder+'lda_tuning_results.csv',
                                                    result_folder=result_folder)
-        model.save_all_topics(lda_model=final_lda, folder_path=result_folder)
+        model.save_all_topics(lda_model=final_lda, folder_path=result_folder, topwords = result_dict['topwords'])
 
         result_dict['filter'] = FILTER
         result_dict['pos'] = POS
@@ -57,9 +57,9 @@ def run():
 
         results.append(pd.DataFrame(result_dict.items()), ignore_index=True)
         print(result_dict)
-        print("finalize and plot word cloud")
-        from openml_topic.utils import plot_word_cloud
-        plot_word_cloud(final_lda, result_folder)
+        # print("finalize and plot word cloud")
+        # from openml_topic.utils import plot_word_cloud
+        # plot_word_cloud(final_lda, result_folder)
 
 
 if __name__ == "__main__":

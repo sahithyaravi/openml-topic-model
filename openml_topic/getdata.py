@@ -16,7 +16,7 @@ class Dataset:
         Form a dataframe with the descriptions from all openml datasets
         :return: unique dataset descriptions with length min=50
         """
-        dataset_list = datasets.list_datasets(output_format='dataframe', status='all')
+        dataset_list = datasets.list_datasets(output_format='dataframe', status='active')
         data_dict = defaultdict(list)
         for did in dataset_list['did']:
             try:

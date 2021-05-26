@@ -34,7 +34,7 @@ class Model:
         # docs = [d.split() for d in docs]
         self.docs_train = docs
         self.df = df
-        self.docs_test = docs[5000:]
+        self.docs_test = docs[2000:]
         self.dictionary = corpora.Dictionary(self.docs_train)
 
         # # Filter terms that occur in more than 50% of docs
@@ -134,11 +134,8 @@ class Model:
         alpha_range = list(np.arange(0.01, 0.21, 0.05))
         alpha_range.append("symmetric")
         alpha_range.append("asymmetric")
-        # alpha_range.append("auto")
-        beta_range = [] # list(np.arange(0.01, 0.21, 0.05))
-        beta_range.append("symmetric")
-        # beta_range.append("asymmetric")
-        # beta_range.append("auto")
+        alpha_range.append("auto")
+        beta_range = [0.1, "symmetric", "auto"]  # list(np.arange(0.01, 0.21, 0.05))
         # Use 50% of data
         corpus_sets = [self.doc_term_mat_train]
         model_results = {
@@ -176,7 +173,7 @@ class Model:
         results = pd.read_csv(path)
         best_params = results
         # best_params = results[results["alpha"].isin(["symmetric", "asymmetric"])]
-        best_params = best_params[best_params["perplexity"] > -7]
+        # best_params = best_params[best_params["perplexity"] > -7]
         best_params = best_params.sort_values(by="coherence", ascending=False)
         print(best_params.head(10))
 
@@ -234,16 +231,12 @@ class Model:
         lda.update(self.doc_term_mat_test) # Update the model by incrementally training on the new corpus
         vector = lda[unseen_doc]  # get topic probability distribution for a new document        print(vector)
 
-    def save_all_topics(self, lda_model, folder_path="", n=2):
+    def save_all_topics(self, lda_model, folder_path , topwords):
         docs = self.docs_train
         best_topics = []
         topic_probabilities = []
         topic_info = []
-        topics = []
-        for t in range(lda_model.num_topics):
-            top_words = lda_model.show_topic(t, n)
-            only_words = [x[0] for x in top_words]
-            topics.append(only_words)
+
 
         for doc in docs:
             probs = dict(
@@ -251,7 +244,7 @@ class Model:
             topic_probabilities.append(probs)
             t = max(probs, key=probs.get)
             p = max(probs.values())
-            topic_info.append(topics[t])
+            topic_info.append(topwords[t])
             if p < 0.2:
                 t = -1
             best_topics.append(t)
